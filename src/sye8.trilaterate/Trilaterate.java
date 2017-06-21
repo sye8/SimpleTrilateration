@@ -39,7 +39,8 @@ public class Trilaterate {
 	
 	//Check if two circles intersect each other
 	private static boolean intersect2(Node n1, Node n2){
-		double d2 = Math.pow(dBetweenCircles(n1, n2),2);
+		double d = dBetweenCircles(n1, n2);
+		double d2 = d*d;
 		return (((Math.pow((n1.accuracy - n2.accuracy),2)) <= d2) && (d2 <= Math.pow((n1.accuracy + n2.accuracy),2)));
 	}
 	
