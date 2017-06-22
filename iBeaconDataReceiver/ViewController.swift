@@ -39,7 +39,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in inRegion: CLBeaconRegion) {
-        let sortedBeacons = beacons.sorted{$0.accuracy > $1.accuracy}
+        let sortedBeacons = beacons.sorted{$0.accuracy < $1.accuracy}
         
         //httpPost(Beacons: sortedBeacons) For HTTP functionality test
         if sortedBeacons.count > 0{
