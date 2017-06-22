@@ -65,12 +65,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         }else{
             locationLabel.text = "Unknown"
         }
-        if sortedBeacons.count > 2{
-            for index in 0...2{
+        if sortedBeacons.count > 3{
+            for index in 0...3{
                 let beacon = sortedBeacons[index]
-                if beacon.accuracy > 3{
-                    continue
-                }
                 if accumuDists.isEmpty{
                     accumuDists.append(beaconAccumuDist(minor: Int(beacon.minor), accumuDist: [beacon.accuracy]))
                 }else{
@@ -87,7 +84,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                     }
                 }
             }
-            print(accumuDists)
 //             httpPost(Beacons: sortedBeacons)
         }
     }
@@ -104,7 +100,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         var postString = ""
         for (key,value) in Beacons{
             postString += "major\(counter)=1&minor\(counter)=\(key)&d\(counter)=\(value)"
-            if(counter < 3){
+            if(counter < 4){
                 postString+="&"
             }
             counter+=1
@@ -128,7 +124,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     func timerHandler(){
         var retDict: [Int: Double] = [:]
-        while(accumuDists.count > 3){
+        while(accumuDists.count > 4){
             var min = Int.max
             var minIndex = -1
             for i in 0...accumuDists.count-1{
@@ -170,7 +166,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             retDict[beacon.minor] = sum
         }
         print(retDict)
-        if retDict.count == 3{
+        if retDict.count == 4{
             httpPost(Beacons: retDict)
         }
         accumuDists = []
