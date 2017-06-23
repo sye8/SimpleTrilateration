@@ -1,31 +1,30 @@
 //Sifan, Ye
 //Assumes an iBeacon Node
 
-package sye8.trilaterate;
+package sye8.utils;
 
 public class Node {
 	
 	//Node properties
-	public int major;
-	public int minor;
+	private int major;
+   	private int minor;
 	public double accuracy; //In meters
 	
-	//Coordinates
-	public Coordinate coord;
-	
-	public Node(int major, int minor, double x, double y, double accuracy){
+	public Node(int major, int minor, double accuracy){
 		this.major = major;
 		this.minor = minor;
 		this.accuracy = accuracy;
-		this.coord = new Coordinate(x,y);
+	}
+	
+	public String getMajorStr(){
+		return Integer.toString(this.major);
+	}
+	
+	public String getMinorStr(){
+		return Integer.toString(this.minor);
 	}
 	
 	public String toString(){
-		return "Major: " + major + "Minor: " + minor + "Est. Distance: " + accuracy + "Coordinate: " + coord;
+		return "Major: " + major + " Minor: " + minor + " Est. Distance: " + accuracy;
 	}
-	
-	public String coordToString(){
-		return "x: " + coord.x + " y: " + coord.y; 
-	}
-	
 }
