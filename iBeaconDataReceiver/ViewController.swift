@@ -16,7 +16,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     @IBOutlet weak var locationLabel: UILabel!
     
     let locManager = CLLocationManager()
-    let region = CLBeaconRegion(proximityUUID: UUID(uuidString: "FDA50693-A4E2-4FB1-AFCF-C6EB07647825")!, major:1, identifier: "FmxyBeacon") //Here: filter out those that doesn't have major == 1
+    let region = CLBeaconRegion(proximityUUID: UUID(uuidString: "FDA50693-A4E2-4FB1-AFCF-C6EB07647825")!, identifier: "FmxyBeacon") //Here: filter out those that doesn't have major == 1
     
     override func viewDidLoad() {
         super.viewDidLoad()
