@@ -1,4 +1,4 @@
-package sye8.trilaterate;
+package sye8.utils;
 //Sifan, Ye
 //Coordinate Object
 //Unit: meters
@@ -14,7 +14,7 @@ public class Coordinate {
 	}
 	
 	public boolean isNull(){
-		return x == Double.NaN || y == Double.NaN;
+		return Double.isNaN(this.x) || Double.isNaN(this.y);
 	}
 	
 	public String toString(){
