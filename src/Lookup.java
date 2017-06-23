@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.lemmingapex.trilateration.NonLinearLeastSquaresSolver;
 import com.lemmingapex.trilateration.TrilaterationFunction;
 
+import sun.awt.RepaintArea;
 import sye8.utils.Coordinate;
 import sye8.utils.Maths;
 import sye8.utils.Node;
@@ -160,11 +161,12 @@ public class Lookup extends HttpServlet {
 		if(!loc.isNull()){
 			g.setColor(Color.BLUE);
 			g.fillOval((int)(loc.x*100) - 3, (int)(loc.y*100) - 3, 6, 6);
+			out.print(loc);
 			if(!Double.isNaN(xError) && !Double.isNaN(yError)){
 				g.setColor(new Color(66, 134, 244, 100));
 				g.fillOval((int)(loc.x*100)-(int)(xError*100), (int)(loc.y*100)-(int)(yError*100), (int)(xError*100)*2, (int)(yError*100)*2);
-			}
-			out.print(loc);
+				out.print("\nError: x: " + xError + " y: " + yError);
+			}		
 			out.close();
 			out.flush();
 		}else{
