@@ -50,9 +50,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                     proximityLabels[index].text = "Unknown"
             }
         }
-        
-        //Sending JSON
-        if beacons.count > 2{
+        if beacons.count == 0{
+            self.locationLabel.text = "No Node found, cannot determine location"
+        }else{
+            //Send JSON
             var retDict: [[String:String]] = []
             for beacon in beacons{
                 retDict.append(beaconToDict(beacon: beacon))
