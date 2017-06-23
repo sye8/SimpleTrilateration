@@ -75,13 +75,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                         return
                     }
                     if let data = data, let string = String(data: data, encoding: .utf8) {
-                        self.locationLabel.text = string
+                        DispatchQueue.main.async() {
+                            self.locationLabel.text = string
+                        }
                     }
                 }
                 task.resume()
-//                if let string = String(data: data, encoding: .utf8) {
-//                    print(string)
-//                }
             }catch{
                 print("Error")
             }
