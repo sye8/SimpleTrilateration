@@ -1,7 +1,5 @@
 package sye8.utils;
-//Sifan, Ye
-//Coordinate Object
-//Unit: meters
+
 
 public class Coordinate {
 
