@@ -1,8 +1,6 @@
 //Sifan, Ye
 //Assumes an iBeacon Node
 
-package sye8.utils;
-
 public class Node {
 	
 	//Node properties
