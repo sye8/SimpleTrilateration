@@ -3,7 +3,6 @@ package sye8.utils;
 //Implemented by Sifan Ye
 //Jun.13, 2017
 //Math Helper Functions
-//findCoord formula credit: TRIANGLE AND CENTROID LOCALIZATION ALGORITHM BASED ON DISTANCE COMPENSATION by Ye Shang, Zhigang Liu, Jinkuan Wang and Xianda Xiao
 
 public class Maths {
 	
