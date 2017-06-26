@@ -1,11 +1,13 @@
 //Sifan, Ye
 //Assumes an iBeacon Node
 
+
+
 public class Node {
 	
 	//Node properties
 	private int major;
-   	private int minor;
+    private int minor;
 	public double accuracy; //In meters
 	
 	public Node(int major, int minor, double accuracy){

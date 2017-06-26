@@ -27,8 +27,8 @@ import com.lemmingapex.trilateration.NonLinearLeastSquaresSolver;
 import com.lemmingapex.trilateration.TrilaterationFunction;
 
 import sye8.utils.Coordinate;
-import sye8.utils.Maths;
 import sye8.utils.ImageUtils;
+import sye8.utils.Maths;
 
 /**
  * Servlet implementation class Lookup
