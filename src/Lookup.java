@@ -28,7 +28,6 @@ import com.lemmingapex.trilateration.TrilaterationFunction;
 
 import sye8.utils.Coordinate;
 import sye8.utils.Maths;
-import sye8.utils.Node;
 import sye8.utils.ImageUtils;
 
 /**
