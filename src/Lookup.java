@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -39,6 +40,9 @@ public class Lookup extends HttpServlet {
 	
 	JFrame frame = new JFrame("Debug");
 	
+	Coordinate[] oldCoords = new Coordinate[2];
+	int coordCount = 0;
+	double prevV = Double.NaN;
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -103,7 +107,9 @@ public class Lookup extends HttpServlet {
 		
 	    switch (nodes.length) {
 			case 1:
-				loc = new Coordinate(Double.NaN, Double.NaN);
+				loc = new Coordinate(positions[0][0], positions[0][1]);
+				xError = distances[0];
+				yError = distances[1];
 				break;	
 			case 2:
 				if(Maths.intersect(positions, distances)){
@@ -129,7 +135,33 @@ public class Lookup extends HttpServlet {
 				yError = standardDeviation[1]*1.96;
 				break;
 		}	
-				
+	    
+	    switch(coordCount){
+	    	case 0: 
+	    		oldCoords[0] = loc;
+	    		coordCount++;
+	    		break;
+	    	case 1:
+	    		prevV = Coordinate.distance(oldCoords[0], loc); //Since CoreLocation sends iBeacon data per second
+	    		oldCoords[1] = loc;
+	    		coordCount++;
+	    		break;
+	    	case 2:
+	    		Coordinate prevC = oldCoords[1];
+	    		double tempV = Coordinate.distance(prevC, loc);
+	    		System.out.println("TempV: " + tempV);
+	    		if(tempV > 5){
+	    			double dx = prevC.x - oldCoords[0].x;
+	    			double dy = prevC.y - oldCoords[0].y;
+	    			loc = new Coordinate(prevC.x + dx, prevC.y + dy);
+	    		}else{		
+		    		prevV = tempV;
+	    		}
+	    		oldCoords[0] = prevC;
+	    		oldCoords[1] = loc;
+	    		break;
+		}
+	    
 		//Debug
 		frame.setVisible(true);
 		frame.setSize(1400, 1000);
@@ -141,12 +173,6 @@ public class Lookup extends HttpServlet {
 		for(int i = 0; i < nodes.length; i++){
 			int x = (int)(positions[i][0]*100);
 			int y = (int)(positions[i][1]*100);
-			if(nodes.length == 1){
-				int d = (int)(distances[i]*100);
-				g.setColor(new Color(66, 134, 244, 100));
-				g.fillOval(x-d, y-d, d*2, d*2);
-				g.setColor(Color.BLACK);
-			}
 			g.fillOval(x-3, y-3, 6, 6);
 //			g.drawOval(x-d, y-d, d*2, d*2);
 		}
