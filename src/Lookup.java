@@ -136,35 +136,36 @@ public class Lookup extends HttpServlet {
 				break;
 		}	
 	    
-	    switch(coordCount){
-	    	case 0: 
-	    		oldCoords[0] = loc;
-	    		coordCount++;
-	    		break;
-	    	case 1:
-	    		prevV = Coordinate.distance(oldCoords[0], loc); //Since CoreLocation sends iBeacon data per second
-	    		oldCoords[1] = loc;
-	    		coordCount++;
-	    		break;
-	    	case 2:
-	    		Coordinate prevC = oldCoords[1];
-	    		double tempV = Coordinate.distance(prevC, loc);
-	    		System.out.println("TempV: " + tempV);
-	    		if(tempV > 5){
-	    			double dx = prevC.x - oldCoords[0].x;
-	    			double dy = prevC.y - oldCoords[0].y;
-	    			loc = new Coordinate(prevC.x + dx, prevC.y + dy);
-	    		}else{		
-		    		prevV = tempV;
-	    		}
-	    		oldCoords[0] = prevC;
-	    		oldCoords[1] = loc;
-	    		break;
-		}
+	    //Drift Correction
+//	    switch(coordCount){
+//	    	case 0: 
+//	    		oldCoords[0] = loc;
+//	    		coordCount++;
+//	    		break;
+//	    	case 1:
+//	    		prevV = Coordinate.distance(oldCoords[0], loc); //Since CoreLocation sends iBeacon data per second
+//	    		oldCoords[1] = loc;
+//	    		coordCount++;
+//	    		break;
+//	    	case 2:
+//	    		Coordinate prevC = oldCoords[1];
+//	    		double tempV = Coordinate.distance(prevC, loc);
+//	    		System.out.println("TempV: " + tempV);
+//	    		if(tempV > 10){
+//	    			double dx = prevC.x - oldCoords[0].x;
+//	    			double dy = prevC.y - oldCoords[0].y;
+//	    			loc = new Coordinate(prevC.x + dx, prevC.y + dy);
+//	    		}else{		
+//		    		prevV = tempV;
+//	    		}
+//	    		oldCoords[0] = prevC;
+//	    		oldCoords[1] = loc;
+//	    		break;
+//		}
 	    
 		//Debug
 		frame.setVisible(true);
-		frame.setSize(1400, 1000);
+		frame.setSize(1190, 1000);
 		
 		Graphics g = frame.getGraphics();
 		Image map = ImageUtils.loadImage("/Users/yesifan/Documents/workspace/Trilateration/Room.jpg");
@@ -174,7 +175,8 @@ public class Lookup extends HttpServlet {
 			int x = (int)(positions[i][0]*100);
 			int y = (int)(positions[i][1]*100);
 			g.fillOval(x-3, y-3, 6, 6);
-//			g.drawOval(x-d, y-d, d*2, d*2);
+			g.drawString(nodes[i].getMinorStr(), x, y);
+			g.drawOval(x-(int)(distances[i]*100), y-(int)(distances[i]*100), (int)(distances[i]*100)*2, (int)(distances[i]*100)*2);
 		}
 		
 		System.out.println(loc);
@@ -185,12 +187,12 @@ public class Lookup extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		if(!loc.isNull()){
 			g.setColor(Color.BLUE);
-			g.fillOval((int)(loc.x*100) - 3, (int)(loc.y*100) - 3, 6, 6);
+			g.fillOval((int)(loc.x*100) - 5, (int)(loc.y*100) - 5, 10, 10);
 			out.print(loc);
 			if(!Double.isNaN(xError) && !Double.isNaN(yError)){
 				g.setColor(new Color(66, 134, 244, 100));
 				g.fillOval((int)(loc.x*100)-(int)(xError*100), (int)(loc.y*100)-(int)(yError*100), (int)(xError*100)*2, (int)(yError*100)*2);
-				out.print("\nError: x: " + xError + " y: " + yError);
+				out.printf("\nError: x: %.4f, y: %.4f", xError, yError);
 			}		
 			out.close();
 			out.flush();
