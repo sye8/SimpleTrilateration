@@ -80,7 +80,23 @@ public class Lookup extends HttpServlet {
 	    Gson gson = new Gson();
 	    
 	    Node[] nodes = gson.fromJson(json, Node[].class);
+	    Arrays.sort(nodes);
 	    System.out.println(nodes.length);
+	    System.out.println(Arrays.toString(nodes));
+	    int endIndex = 0;	
+	    int startIndex = 0;
+	    for(;endIndex < nodes.length; endIndex++){
+	    	if(nodes[endIndex].accuracy > 5){
+	    		break;
+	    	}else if(nodes[endIndex].accuracy < 0){
+	    		startIndex++;
+	    	}
+	    }
+	    if(endIndex == nodes.length){
+	    	endIndex--;
+	    }
+	    System.out.println(startIndex);
+	    System.out.println(endIndex);
 	    
 		double[][] positions = new double[nodes.length][2];
 		double[] distances = new double[nodes.length];
@@ -92,18 +108,18 @@ public class Lookup extends HttpServlet {
 		Connection connection = (Connection) getServletContext().getAttribute("DBConnection");
 		PreparedStatement[] preparedStates = new PreparedStatement[nodes.length];
 		ResultSet[] resultSets = new ResultSet[nodes.length];
-		for(int i = 0; i < nodes.length; i++){
+		for(int i = 0; i <= endIndex-startIndex; i++){
 			preparedStates[i] = null;
 			resultSets[i] = null;
 			try{
 				preparedStates[i] = connection.prepareStatement("select major, minor, x, y from Nodes where Major=? and Minor=? limit 1");
-				preparedStates[i].setString(1, nodes[i].getMajorStr());
-				preparedStates[i].setString(2, nodes[i].getMinorStr());
+				preparedStates[i].setString(1, nodes[i+startIndex].getMajorStr());
+				preparedStates[i].setString(2, nodes[i+startIndex].getMinorStr());
 				resultSets[i] = preparedStates[i].executeQuery();
 				if(resultSets[i] != null && resultSets[i].next()){
 					positions[i][0] = resultSets[i].getDouble("x");
 					positions[i][1] = resultSets[i].getDouble("y");
-					distances[i] = nodes[i].accuracy;
+					distances[i] = nodes[i+startIndex].accuracy;
 				}			
 			}catch(SQLException e){
 				e.printStackTrace();
@@ -150,12 +166,17 @@ public class Lookup extends HttpServlet {
 	    	retVal = loc;
 	    	retXErr = xError;
 	    	retYErr = yError;
+	    }else if(loc.isNull()){
+	    	retVal = loc;
+	    	retXErr = Double.NaN;
+	    	retYErr = Double.NaN;
 	    }else{
 	    	double d = Coordinate.distance(loc, oldCoord);
 	    	System.out.println("State: " + state);
 	    	System.out.println("Distance: " + d);
 	    	switch(state){
 	    		case 0: //Default
+	    			count = 0;
 	    			if(d > 1){
 	    				state = 1;
 	    				retVal = oldCoord;
@@ -172,16 +193,10 @@ public class Lookup extends HttpServlet {
 	    			break;
 	    		case 1: //Location moved
 	    			if(d > 1.5){
-	    				if(count > 2){
-	    					oldCoord = null;
-	    					state = 0;
-	    					count = 0;
-	    				}else{
-	    					retVal = oldCoord;
-		    				retXErr = oldXErr;
-		    				retYErr = oldYErr;
-		    				count++;
-	    				}    				
+    					oldCoord = loc;
+	    				oldXErr = xError;
+	    				oldYErr = yError;
+	    				count++; 				
 	    			}else if(d <= 1.5 && d > 1){
 	    				state = 2;
 	    				retVal = loc;
@@ -190,11 +205,13 @@ public class Lookup extends HttpServlet {
 	    				oldCoord = loc;
 	    				oldXErr = xError;
 	    		    	oldYErr = yError;
+	    		    	count = 0;
 	    			}else{
 	    				state = 3;
 	    				retVal = loc;
 	    				retXErr = xError;
 	    		    	retYErr = yError;
+	    		    	count = 0;
 	    			}
 	    			break;
 	    		case 2: //Walking
@@ -253,11 +270,11 @@ public class Lookup extends HttpServlet {
 		Image map = ImageUtils.loadImage("/Users/yesifan/Documents/workspace/Trilateration/Room.jpg");
 		g.drawImage(map,0,0,null);
 		g.setColor(Color.BLACK);
-		for(int i = 0; i < nodes.length; i++){
+		for(int i = 0; i <= endIndex-startIndex; i++){
 			int x = (int)(positions[i][0]*100);
 			int y = (int)(positions[i][1]*100);
 			g.fillOval(x-3, y-3, 6, 6);
-			g.drawString(nodes[i].getMinorStr(), x, y);
+			g.drawString(nodes[i+startIndex].getMinorStr(), x, y);
 			g.drawOval(x-(int)(distances[i]*100), y-(int)(distances[i]*100), (int)(distances[i]*100)*2, (int)(distances[i]*100)*2);
 		}
 		
