@@ -40,9 +40,15 @@ public class Lookup extends HttpServlet {
 	
 	JFrame frame = new JFrame("Debug");
 	
-	Coordinate[] oldCoords = new Coordinate[2];
-	int coordCount = 0;
-	double prevV = Double.NaN;
+	//For noise correction
+    int state = 0;
+    int count = 0;
+    Coordinate oldCoord = null;
+    double oldXErr = Double.NaN;
+    double oldYErr = Double.NaN;
+    Coordinate retVal = null;
+    double retXErr = Double.NaN;
+    double retYErr = Double.NaN;
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -136,32 +142,108 @@ public class Lookup extends HttpServlet {
 				break;
 		}	
 	    
-	    //Drift Correction
-//	    switch(coordCount){
-//	    	case 0: 
-//	    		oldCoords[0] = loc;
-//	    		coordCount++;
-//	    		break;
-//	    	case 1:
-//	    		prevV = Coordinate.distance(oldCoords[0], loc); //Since CoreLocation sends iBeacon data per second
-//	    		oldCoords[1] = loc;
-//	    		coordCount++;
-//	    		break;
-//	    	case 2:
-//	    		Coordinate prevC = oldCoords[1];
-//	    		double tempV = Coordinate.distance(prevC, loc);
-//	    		System.out.println("TempV: " + tempV);
-//	    		if(tempV > 10){
-//	    			double dx = prevC.x - oldCoords[0].x;
-//	    			double dy = prevC.y - oldCoords[0].y;
-//	    			loc = new Coordinate(prevC.x + dx, prevC.y + dy);
-//	    		}else{		
-//		    		prevV = tempV;
-//	    		}
-//	    		oldCoords[0] = prevC;
-//	    		oldCoords[1] = loc;
-//	    		break;
-//		}
+	    //Noise Correction
+	    if(oldCoord == null){
+	    	oldCoord = loc;
+	    	oldXErr = xError;
+	    	oldYErr = yError;
+	    	retVal = loc;
+	    	retXErr = xError;
+	    	retYErr = yError;
+	    }else{
+	    	double d = Coordinate.distance(loc, oldCoord);
+	    	System.out.println("State: " + state);
+	    	System.out.println("Distance: " + d);
+	    	switch(state){
+	    		case 0: //Default
+	    			if(d > 1){
+	    				state = 1;
+	    				retVal = oldCoord;
+	    				retXErr = oldXErr;
+	    				retYErr = oldYErr;
+	    			}else{
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    				oldCoord = loc;
+	    				oldXErr = xError;
+	    		    	oldYErr = yError;
+	    			}
+	    			break;
+	    		case 1: //Location moved
+	    			if(d > 1.5){
+	    				if(count > 2){
+	    					oldCoord = null;
+	    					state = 0;
+	    					count = 0;
+	    				}else{
+	    					retVal = oldCoord;
+		    				retXErr = oldXErr;
+		    				retYErr = oldYErr;
+		    				count++;
+	    				}    				
+	    			}else if(d <= 1.5 && d > 1){
+	    				state = 2;
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    				oldCoord = loc;
+	    				oldXErr = xError;
+	    		    	oldYErr = yError;
+	    			}else{
+	    				state = 3;
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    			}
+	    			break;
+	    		case 2: //Walking
+	    			if(d > 1.5){
+	    				state = 1;
+	    				retVal = oldCoord;
+	    				retXErr = oldXErr;
+	    				retYErr = oldYErr;
+	    			}else if(d <= 1.5 && d > 1){
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    				oldCoord = loc;
+	    				oldXErr = xError;
+	    		    	oldYErr = yError;
+	    			}else{
+	    				state = 3;
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    			}
+	    			break;
+	    		case 3: //Location stabilized
+	    			if(d <= 1){
+	    				state = 0;
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    				oldCoord = loc;
+	    				oldXErr = xError;
+	    		    	oldYErr = yError;
+	    			}else if(d > 1 && d <= 1.5){
+	    				state = 2;
+	    				retVal = loc;
+	    				retXErr = xError;
+	    		    	retYErr = yError;
+	    				oldCoord = loc;
+	    				oldXErr = xError;
+	    		    	oldYErr = yError;
+	    			}else{
+	    				state = 1;
+	    				retVal = oldCoord;
+	    				retXErr = oldXErr;
+	    				retYErr = oldYErr;
+	    			}
+	    			break;
+	    	}
+	    }
+	    
 	    
 		//Debug
 		frame.setVisible(true);
@@ -179,20 +261,22 @@ public class Lookup extends HttpServlet {
 			g.drawOval(x-(int)(distances[i]*100), y-(int)(distances[i]*100), (int)(distances[i]*100)*2, (int)(distances[i]*100)*2);
 		}
 		
-		System.out.println(loc);
-		System.out.println(xError);
-		System.out.println(yError);
+		System.out.println(retVal);
+		System.out.println("x Error: " + retXErr);
+		System.out.println("y Error: " + retYErr);
 		
 		//Send String
 		PrintWriter out = response.getWriter();
-		if(!loc.isNull()){
+		if(!retVal.isNull()){
 			g.setColor(Color.BLUE);
+			g.fillOval((int)(retVal.x*100) - 5, (int)(retVal.y*100) - 5, 10, 10);
+			g.setColor(Color.RED);
 			g.fillOval((int)(loc.x*100) - 5, (int)(loc.y*100) - 5, 10, 10);
-			out.print(loc);
-			if(!Double.isNaN(xError) && !Double.isNaN(yError)){
+			out.print(retVal);
+			if(!Double.isNaN(retXErr) && !Double.isNaN(retYErr)){
 				g.setColor(new Color(66, 134, 244, 100));
-				g.fillOval((int)(loc.x*100)-(int)(xError*100), (int)(loc.y*100)-(int)(yError*100), (int)(xError*100)*2, (int)(yError*100)*2);
-				out.printf("\nError: x: %.4f, y: %.4f", xError, yError);
+				g.fillOval((int)(retVal.x*100)-(int)(retXErr*100), (int)(retVal.y*100)-(int)(retYErr*100), (int)(retXErr*100)*2, (int)(retYErr*100)*2);
+				out.printf("\nError: x: %.4f, y: %.4f", retXErr, retYErr);
 			}		
 			out.close();
 			out.flush();
