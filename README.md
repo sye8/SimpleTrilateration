@@ -1,5 +1,5 @@
 # Trilateration
-iBeacon based localization with trilateration and position noise filter
+iBeacon based localization with trilateration and position noise filter utilizing Kalman Filter
 
 This branch will be the optimized version
 
