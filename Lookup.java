@@ -140,7 +140,7 @@ public class Lookup extends HttpServlet {
 				break;
 		}	
 	    
-	    //Noise Correction for calculated postions
+	    //Noise Correction for calculated positions
 	    if(oldCoord == null){
 	    	oldCoord = loc;
 	    	oldXErr = xError;
