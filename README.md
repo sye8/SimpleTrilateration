@@ -1,5 +1,5 @@
 # Trilateration
-iBeacon based localization with trilateration and position noise filter using automaton
+iBeacon based localization with trilateration and position noise filter
 
 This branch will be the optimized version
 
