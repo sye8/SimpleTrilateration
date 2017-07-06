@@ -11,7 +11,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -29,6 +28,7 @@ import com.lemmingapex.trilateration.TrilaterationFunction;
 
 import sye8.utils.Coordinate;
 import sye8.utils.ImageUtils;
+import sye8.utils.KalmanFilter;
 import sye8.utils.Maths;
 
 /**
@@ -40,9 +40,13 @@ public class Lookup extends HttpServlet {
 	
 	JFrame frame = new JFrame("Debug");
 	
+	//For Kalman Filter
+	private double processNoise = 0.01;
+	private double measurementNoise = 0.5;
+	private KalmanFilter filterX = new KalmanFilter(processNoise, measurementNoise);
+	private KalmanFilter filterY = new KalmanFilter(processNoise, measurementNoise);
+	
 	//For noise correction
-    int state = 0;
-    int count = 0;
     Coordinate oldCoord = null;
     double oldXErr = Double.NaN;
     double oldYErr = Double.NaN;
@@ -141,14 +145,7 @@ public class Lookup extends HttpServlet {
 		}	
 	    
 	    //Noise Correction for calculated positions
-	    if(oldCoord == null){
-	    	oldCoord = loc;
-	    	oldXErr = xError;
-	    	oldYErr = yError;
-	    	retVal = loc;
-	    	retXErr = xError;
-	    	retYErr = yError;
-	    }else if(loc.isNull()){
+	    if(loc.isNull()){
 	    	retVal = loc;
 	    	retXErr = Double.NaN;
 	    	retYErr = Double.NaN;
@@ -161,97 +158,15 @@ public class Lookup extends HttpServlet {
 			retXErr = oldXErr;
 			retYErr = oldYErr;
 	    }else{
-	    	double d = Coordinate.distance(loc, oldCoord);
-	    	System.out.println("State: " + state);
-	    	System.out.println("Distance: " + d);
-	    	switch(state){
-	    		case 0: //Default
-	    			count = 0;
-	    			if(d > 1){
-	    				state = 1;
-	    				retVal = oldCoord;
-	    				retXErr = oldXErr;
-	    				retYErr = oldYErr;
-	    			}else{
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    				oldCoord = loc;
-	    				oldXErr = xError;
-	    		    	oldYErr = yError;
-	    			}
-	    			break;
-	    		case 1: //Location moved
-	    			if(d > 1.5){
-    					oldCoord = loc;
-	    				oldXErr = xError;
-	    				oldYErr = yError;
-	    				count++; 				
-	    			}else if(d <= 1.5 && d > 1){
-	    				state = 2;
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    				oldCoord = loc;
-	    				oldXErr = xError;
-	    		    	oldYErr = yError;
-	    		    	count = 0;
-	    			}else{
-	    				state = 3;
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    		    	count = 0;
-	    			}
-	    			break;
-	    		case 2: //Walking
-	    			if(d > 1.5){
-	    				state = 1;
-	    				retVal = oldCoord;
-	    				retXErr = oldXErr;
-	    				retYErr = oldYErr;
-	    			}else if(d <= 1.5 && d > 1){
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    				oldCoord = loc;
-	    				oldXErr = xError;
-	    		    	oldYErr = yError;
-	    			}else{
-	    				state = 3;
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    			}
-	    			break;
-	    		case 3: //Location stabilized
-	    			if(d <= 1){
-	    				state = 0;
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    				oldCoord = loc;
-	    				oldXErr = xError;
-	    		    	oldYErr = yError;
-	    			}else if(d > 1 && d <= 1.5){
-	    				state = 2;
-	    				retVal = loc;
-	    				retXErr = xError;
-	    		    	retYErr = yError;
-	    				oldCoord = loc;
-	    				oldXErr = xError;
-	    		    	oldYErr = yError;
-	    			}else{
-	    				state = 1;
-	    				retVal = oldCoord;
-	    				retXErr = oldXErr;
-	    				retYErr = oldYErr;
-	    			}
-	    			break;
-	    	}
+    		retVal = new Coordinate(filterX.filter(loc.x), filterY.filter(loc.y));
+    		retXErr = xError;
+	    	retYErr = yError;
+	    	oldCoord = retVal;
+	    	oldXErr = retXErr;
+	    	oldYErr = retYErr;
+	    	
 	    }
-	    
-	    
+	 	    
 		//Debug
 		frame.setVisible(true);
 		frame.setSize(1190, 1000);
