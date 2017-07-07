@@ -41,8 +41,8 @@ public class Lookup extends HttpServlet {
 	JFrame frame = new JFrame("Debug");
 	
 	//For Kalman Filter
-	private double processNoise = 0.01;
-	private double measurementNoise = 0.5;
+	private double processNoise = 0.008;
+	private double measurementNoise = 0.1;
 	private KalmanFilter filterX = new KalmanFilter(processNoise, measurementNoise);
 	private KalmanFilter filterY = new KalmanFilter(processNoise, measurementNoise);
 	
@@ -145,27 +145,42 @@ public class Lookup extends HttpServlet {
 		}	
 	    
 	    //Noise Correction for calculated positions
-	    if(loc.isNull()){
+	    if(oldCoord == null){
 	    	retVal = loc;
-	    	retXErr = Double.NaN;
-	    	retYErr = Double.NaN;
-	    }else if(loc.x < 0.01 && loc.y < 0.01){
-	    	retVal = oldCoord;
-			retXErr = oldXErr;
-			retYErr = oldYErr;
-	    }else if(contains(positions, loc) && nodes.length > 1){
-	    	retVal = oldCoord;
-			retXErr = oldXErr;
-			retYErr = oldYErr;
-	    }else{
-    		retVal = new Coordinate(filterX.filter(loc.x), filterY.filter(loc.y));
-    		retXErr = xError;
+	    	retXErr = xError;
 	    	retYErr = yError;
-	    	oldCoord = retVal;
-	    	oldXErr = retXErr;
-	    	oldYErr = retYErr;
-	    	
-	    }
+	    	oldCoord = loc;
+	    	oldXErr = xError;
+	    	oldYErr = yError;
+	    }else{
+	    	if(loc.isNull()){
+		    	retVal = loc;
+		    	retXErr = Double.NaN;
+		    	retYErr = Double.NaN;
+		    }else if(loc.x < 0.01 && loc.y < 0.01){
+		    	retVal = oldCoord;
+				retXErr = oldXErr;
+				retYErr = oldYErr;
+		    }else if(contains(positions, loc) && nodes.length > 1){
+		    	retVal = oldCoord;
+				retXErr = oldXErr;
+				retYErr = oldYErr;
+		    }else if(Coordinate.distance(loc, oldCoord) < 1.5){
+		    	retVal = loc;
+		    	retXErr = xError;
+		    	retYErr = yError;
+		    	oldCoord = loc;
+		    	oldXErr = xError;
+		    	oldYErr = yError;	    	
+		    }else{
+	    		retVal = new Coordinate(filterX.filter(loc.x), filterY.filter(loc.y));
+	    		retXErr = xError;
+		    	retYErr = yError;
+		    	oldCoord = retVal;
+		    	oldXErr = retXErr;
+		    	oldYErr = retYErr;    	
+		    }
+	    }    
 	 	    
 		//Debug
 		frame.setVisible(true);
