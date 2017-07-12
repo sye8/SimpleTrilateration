@@ -86,7 +86,7 @@ public class MapTest {
 			double y = Double.parseDouble(consoleIn.nextLine());
 			Coordinate2D selected = new Coordinate2D(x,y);
 			
-			GraphNode start = roomMap.findPathWithCoordinate(selected);
+			GraphNode start = roomMap.findStartingPointWithCoordinate(selected);
 			
 			System.out.println("Enter end point: ");
 			GraphNode end = vertices.get(consoleIn.nextLine());
