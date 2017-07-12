@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Scanner;
 
 import javax.swing.JFrame;
 
+import sye8.utils.Coordinate;
 import sye8.utils.ImageUtils;
 import sye8.utils.Graph.Edge;
 import sye8.utils.Graph.Graph;
@@ -75,23 +77,48 @@ public class MapTest {
 	    	g.drawLine(x1, y1, x2, y2);    	
 		}
 		
-		System.out.println("Enter start point: ");
 		Scanner consoleIn = new Scanner(System.in);
-		GraphNode start = vertices.get(consoleIn.nextLine());
-		roomMap.dijkstra(start);
-		System.out.println("Enter end point: ");
-		GraphNode end = vertices.get(consoleIn.nextLine());
-		GraphNode path = end;
-		g.setColor(Color.BLUE);
-		while(path.path != null){
-			int pstx = (int)(path.x*100);
-			int psty = (int)(path.y*100);
-			int pedx = (int)(path.path.x*100);
-			int pedy = (int)(path.path.y*100);
-			//Iterate through the vertices
-			path = path.path;
-			g.drawLine(pstx, psty, pedx, pedy);
-		}
+		String directions = "YES";
+		while(directions.equals("YES")){
+			System.out.println("Enter start x: ");
+			double x = Double.parseDouble(consoleIn.nextLine());
+			System.out.println("Enter start y: ");
+			double y = Double.parseDouble(consoleIn.nextLine());
+			GraphNode start = roomMap.closest(new Coordinate(x,y));
+			System.out.println("Enter end point: ");
+			GraphNode end = vertices.get(consoleIn.nextLine());
+			GraphNode path = end;
+			roomMap.dijkstra(start);
+			g.setColor(Color.BLUE);
+			g.drawLine((int)(x*100), (int)(y*100), (int)(start.x*100), (int)(start.y*100));
+			while(path.path != null){
+				int pstx = (int)(path.x*100);
+				int psty = (int)(path.y*100);
+				int pedx = (int)(path.path.x*100);
+				int pedy = (int)(path.path.y*100);
+				//Iterate through the vertices
+				path = path.path;
+				g.drawLine(pstx, psty, pedx, pedy);
+			}
+			g.setColor(Color.GREEN);
+			g.fillOval((int)(x*100)-3, (int)(y*100)-3, 6, 6);
+			g.setColor(Color.RED);
+			g.fillOval((int)(end.x*100)-3, (int)(end.y*100)-3, 6, 6);
+			System.out.println("New Directions? (YES or NO)");
+			directions = consoleIn.nextLine();
+			g.drawImage(map,0,0,null);
+			g.setColor(Color.BLACK);
+			it = roads.entrySet().iterator();
+			while(it.hasNext()){
+				Map.Entry<String, Edge> pair = it.next();
+				Edge e = ((Edge) pair.getValue());
+				int y1 = (int)(e.v.y*100);
+		    	int x1 = (int)(e.v.x*100);
+		   		int y2 = (int)(e.w.y*100);
+		   		int x2 = (int)(e.w.x*100);    	
+		    	g.drawLine(x1, y1, x2, y2);    	
+			}
+		}	
 		consoleIn.close();
 	}
 	
