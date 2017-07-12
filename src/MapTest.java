@@ -86,32 +86,7 @@ public class MapTest {
 			double y = Double.parseDouble(consoleIn.nextLine());
 			Coordinate2D selected = new Coordinate2D(x,y);
 			
-			GraphNode closest = roomMap.closest(selected);
-			Coordinate2D closestCoord = new Coordinate2D(closest.x, closest.y);
-			List<String> closestAdj = adjList.get(closest.ID);	
-			System.out.println(closestAdj);
-			Coordinate2D startCoord = null;
-			double minDistance = Double.MAX_VALUE;
-			int index = 0;
-			for(int i = 0; i < closestAdj.size(); i++){
-				GraphNode tempAdj = vertices.get(closestAdj.get(i));
-				Coordinate2D tempAdjCoord = new Coordinate2D(tempAdj.x, tempAdj.y);
-				Coordinate2D tempCoord = Coordinate2D.closestPointOnLineSegmentFromPointC(selected, closestCoord, tempAdjCoord);
-				double tempD = Coordinate2D.distance(tempCoord, selected);
-				if(tempD < minDistance){
-					minDistance = tempD;
-					startCoord = tempCoord;
-					index = i;
-				}			
-			}
-			GraphNode start = new GraphNode("TEMP", startCoord.x, startCoord.y);
-			vertices.put("TEMP", start);
-			List<String> tempAdjList = new ArrayList<String>();
-			tempAdjList.add(closest.ID);
-			tempAdjList.add(closestAdj.get(index));
-			adjList.put("TEMP", tempAdjList);
-			roads.put("TEMP1", new Edge("TEMP1", closest, start));
-			roads.put("TEMP2", new Edge("TEMP2", start, vertices.get(closestAdj.get(index))));
+			GraphNode start = roomMap.findPathWithCoordinate(selected);
 			
 			System.out.println("Enter end point: ");
 			GraphNode end = vertices.get(consoleIn.nextLine());
@@ -146,10 +121,7 @@ public class MapTest {
 		   		int x2 = (int)(e.w.x*100);    	
 		    	g.drawLine(x1, y1, x2, y2);    	
 			}
-			vertices.remove("TEMP");
-			adjList.remove("TEMP");
-			roads.remove("TEMP1");
-			roads.remove("TEMP2");
+			roomMap.removeTempNode();
 		}	
 		consoleIn.close();
 		System.exit(0);
