@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 import javax.swing.JFrame;
 
-import sye8.utils.Coordinate;
+import sye8.utils.Coordinate2D;
 import sye8.utils.ImageUtils;
 import sye8.utils.Graph.Edge;
 import sye8.utils.Graph.Graph;
@@ -28,7 +28,7 @@ public class MapTest {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		Map<String, GraphNode> vertices = new HashMap<String, GraphNode>();  
-	    Map<String, Edge>roads = new HashMap<String, Edge>();
+	    Map<String, Edge> roads = new HashMap<String, Edge>();
 	    Map<String, List<String>> adjList = new HashMap<String, List<String>>();
 	    
 	    Graph roomMap;		    
@@ -84,7 +84,35 @@ public class MapTest {
 			double x = Double.parseDouble(consoleIn.nextLine());
 			System.out.println("Enter start y: ");
 			double y = Double.parseDouble(consoleIn.nextLine());
-			GraphNode start = roomMap.closest(new Coordinate(x,y));
+			Coordinate2D selected = new Coordinate2D(x,y);
+			
+			GraphNode closest = roomMap.closest(selected);
+			Coordinate2D closestCoord = new Coordinate2D(closest.x, closest.y);
+			List<String> closestAdj = adjList.get(closest.ID);	
+			System.out.println(closestAdj);
+			Coordinate2D startCoord = null;
+			double minDistance = Double.MAX_VALUE;
+			int index = 0;
+			for(int i = 0; i < closestAdj.size(); i++){
+				GraphNode tempAdj = vertices.get(closestAdj.get(i));
+				Coordinate2D tempAdjCoord = new Coordinate2D(tempAdj.x, tempAdj.y);
+				Coordinate2D tempCoord = Coordinate2D.closestPointOnLineSegmentFromPointC(selected, closestCoord, tempAdjCoord);
+				double tempD = Coordinate2D.distance(tempCoord, selected);
+				if(tempD < minDistance){
+					minDistance = tempD;
+					startCoord = tempCoord;
+					index = i;
+				}			
+			}
+			GraphNode start = new GraphNode("TEMP", startCoord.x, startCoord.y);
+			vertices.put("TEMP", start);
+			List<String> tempAdjList = new ArrayList<String>();
+			tempAdjList.add(closest.ID);
+			tempAdjList.add(closestAdj.get(index));
+			adjList.put("TEMP", tempAdjList);
+			roads.put("TEMP1", new Edge("TEMP1", closest, start));
+			roads.put("TEMP2", new Edge("TEMP2", start, vertices.get(closestAdj.get(index))));
+			
 			System.out.println("Enter end point: ");
 			GraphNode end = vertices.get(consoleIn.nextLine());
 			GraphNode path = end;
@@ -118,8 +146,13 @@ public class MapTest {
 		   		int x2 = (int)(e.w.x*100);    	
 		    	g.drawLine(x1, y1, x2, y2);    	
 			}
+			vertices.remove("TEMP");
+			adjList.remove("TEMP");
+			roads.remove("TEMP1");
+			roads.remove("TEMP2");
 		}	
 		consoleIn.close();
+		System.exit(0);
 	}
 	
 }
