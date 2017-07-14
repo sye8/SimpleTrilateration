@@ -3,21 +3,21 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
 import javax.swing.JFrame;
 
-import sye8.utils.Coordinate2D;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import sye8.utils.ImageUtils;
 import sye8.utils.Graph.Edge;
-import sye8.utils.Graph.Graph;
 import sye8.utils.Graph.GraphVertex;
+import sye8.utils.Graph.StaticGraph;
 
 public class MapTest {
 
@@ -28,9 +28,7 @@ public class MapTest {
 		
 		Map<String, GraphVertex> vertices = new HashMap<String, GraphVertex>();  
 	    Map<String, Edge> roads = new HashMap<String, Edge>();
-	    Map<String, List<String>> adjList = new HashMap<String, List<String>>();
-	    
-	    Graph roomMap;		    
+//	    Map<String, List<String>> adjList = new HashMap<String, List<String>>();	    
 	    
 		frame.setSize(1400, 1000);
 		frame.setVisible(true);
@@ -39,6 +37,7 @@ public class MapTest {
 		Image map = ImageUtils.loadImage("/Users/yesifan/Documents/workspace/Trilateration/Room.jpg");
 		g.drawImage(map,0,0,null);
 		
+		//Construct Map
 		try {
 			Scanner in = new Scanner(new File("/Users/yesifan/Documents/workspace/Trilateration/room.txt"));
 			while(in.hasNextLine()){
@@ -46,13 +45,13 @@ public class MapTest {
 					String id = in.next();
 					GraphVertex tempVertex = new GraphVertex(id, in.nextDouble(), in.nextDouble());
 					vertices.put(id, tempVertex);
-					adjList.put(id, new ArrayList<String>());
+//					adjList.put(id, new ArrayList<String>());
 				}else{
 					String id = in.next();
 	    			String intersect1 = in.next();
 	    			String intersect2 = in.next();
-	    			adjList.get(intersect1).add(intersect2);
-	    			adjList.get(intersect2).add(intersect1);
+//	    			adjList.get(intersect1).add(intersect2);
+//	    			adjList.get(intersect2).add(intersect1);
 	    			roads.put(id, new Edge(id, vertices.get(intersect1), vertices.get(intersect2)));
 				}
 			}
@@ -62,7 +61,7 @@ public class MapTest {
 			System.out.println("Map text file not found");
 		}	
 		
-		roomMap = new Graph(vertices, roads, adjList, null);
+//		roomMap = new Graph(vertices, roads, adjList, null);
 		
 		//Draw Map
 	   	Iterator<Entry<String, Edge>> it = roads.entrySet().iterator();
@@ -84,20 +83,19 @@ public class MapTest {
 			double startX = Double.parseDouble(consoleIn.nextLine());
 			System.out.println("Enter start y: ");
 			double startY = Double.parseDouble(consoleIn.nextLine());
-			Coordinate2D startCoord = new Coordinate2D(startX,startY);			
-			GraphVertex start = roomMap.addVertexWithCoordinate("TEMPSTART", startCoord);
 			
 			System.out.println("Enter end x: ");	
 			double endX = Double.parseDouble(consoleIn.nextLine());
 			System.out.println("Enter end y: ");
 			double endY = Double.parseDouble(consoleIn.nextLine());
-			Coordinate2D endCoord = new Coordinate2D(endX,endY);		
-			GraphVertex end = roomMap.addVertexWithCoordinate("TEMPEND", endCoord);
 			
-			roomMap.dijkstra(start);
+			//Find path
+			GraphVertex path = StaticGraph.findPath(startX, startY, endX, endY, vertices, roads);
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			String out = gson.toJson(path);
+			System.out.println(out);
 			
 			//Paint the path
-			GraphVertex path = end;
 			g.setColor(Color.BLUE);
 			while(path.path != null){
 				int pstx = (int)(path.x*100);
@@ -118,8 +116,10 @@ public class MapTest {
 			directions = consoleIn.nextLine();
 			
 			//Remove
-			roomMap.removeTempVertex("TEMPSTART");
-			roomMap.removeTempVertex("TEMPEND");
+			StaticGraph.removeTempVertex("TEMPSTART", vertices, roads);
+			StaticGraph.removeTempVertex("TEMPEND", vertices, roads);
+//			roomMap.removeTempVertex("TEMPSTART");
+//			roomMap.removeTempVertex("TEMPEND");
 					
 			//Repaint
 			g.drawImage(map,0,0,null);
